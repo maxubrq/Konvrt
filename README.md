@@ -1,54 +1,117 @@
-### 🔥 One-liner
+# Konvrt
 
-> **Konvrt** — a blazing-fast, Rust-powered engine that converts *any* file format to *any* other, streaming-safe, zero-copy, and ready for CLI, library, or cloud use.
-
----
-
-### 🗺️ Positioning blurb
-
-* **Universal**: documents, images, audio / video, archives, 3D, data sets—plug-in adapters make new formats first-class citizens.
-* **Performance**: Rust + SIMD + async pipelines; benchmarks target 10× faster than standard tools while using < 50 MB RAM per concurrent stream.
-* **Composable**: exposed as both a `konvrt` CLI and a crate; adapters are just Wasm modules, so the community can ship new formats without a re-compile.
-* **Secure by default**: memory-safe Rust, sandboxed adapters, content-type validation, and optional AV scanning hooks.
-* **Everywhere**: works offline, powers serverless lambdas, or embeds into desktop apps with the same API.
+**Konvrt** is a blazing‑fast, Rust‑powered engine that converts *any* file format to *any* other — safely, streaming‑ready, and embeddable from CLI to cloud.
 
 ---
 
-### 📝 README skeleton (if you want to jump straight in)
+## 🚀 TL;DR
 
-| Section           | Snippet                                                                                      |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| Badges            | `crates.io`, `docs.rs`, CI, codecov, `wasm32-unknown-unknown`                                |
-| Quick Start       | `cargo install konvrt` → `konvrt picture.png --to webp`                                      |
-| Supported Formats | markdown table generated from adapter registry                                               |
-| Roadmap           | **v0.1** core pipeline + 5 adapters · **v0.3** Wasm adapter SDK · **v1.0** cloud scale & GUI |
-| Benchmarks        | link to GitHub Actions perf run + flamegraphs                                                |
-| Contributing      | `adapter-hello-world` template, lint rules, CLA note                                         |
+```bash
+# Install the CLI
+cargo install konvrt
 
----
+# Convert JPEG to modern WebP
+konvrt photo.jpg --to webp
 
-### 🧩 Feature/Kano draft (incl. your *Magic* tier)
-
-| Tier            | Feature ideas                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Must-have**   | CLI + crate APIs, lossless integrity check, parallel chunked I/O                                                                |
-| **Performance** | GPU-backed transcoding, zero-copy mmap, on-the-fly compression                                                                  |
-| **Delight**     | `--smart` flag guesses best target format, progress bars with ETA                                                               |
-| **Magic**       | “One-shot publish” – drop any file, Konvrt outputs the optimal format + CDN-ready sizes, all decided by ML on content & context |
-
----
-
-### ⛓️ Architecture sketch (TL;DR)
-
-```
-┌─CLI────┬─gRPC/Lambda──┐
-│        │              │
-│ Front-ends (thin)     │
-└───────▼───────────────┘
-        Engine core  ← async tasks, ring-buffer channels
-        ├─Adapter layer (Wasm/trait)
-        ├─Scheduler (priority, back-pressure)
-        └─Security sandbox + policy
+# Chain conversions with zero temp files
+konvrt archive.tar.gz --to zip | konvrt --to 7z
 ```
 
-Crates: `konvrt-core`, `konvrt-cli`, `konvrt-adapter-sdk`, `konvrt-wasm-host`, `konvrt-cloud`.
+---
+
+## 🔮 Magic Kano Feature Map
+
+A quick look at how Konvrt’s features align with the extended Kano model (including your **Magic** tier):
+
+| Tier            | Feature Highlights                                                                                                                                                                                                                                                                                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Must‑Have**   | • Universal `--from/--to` CLI & crate API<br>• Lossless integrity check (SHA‑3)<br>• Stream‑safe: chunked I/O, back‑pressure<br>• Secure by default: memory‑safe Rust, sandboxed adapters                                                                                                                                                                                    |
+| **Performance** | • Zero‑copy mmap & SIMD paths<br>• Async task scheduler (Tokio)<br>• GPU‑backed transcoding for images/video<br>• Adaptive parallelism (scales with CPU cores)                                                                                                                                                                                                               |
+| **Delight**     | • Smart progress bars with ETA & throughput<br>• `--guess` picks best target format automatically<br>• Auto‑compress on the fly (< 50 MB RAM/stream)<br>• One‑liner pipes (`stdin` ⇄ `stdout`) work everywhere                                                                                                                                                               |
+| **Magic**       | • **One‑Shot Publish**: drop any file, Konvrt emits optimal web‑ready bundle (e.g., responsive images, AVIF, Brotli, pre‑zipped)<br>• ML‑driven **Quality/Size Oracle** selects sweet‑spot params<br>• **Wasm Adapter Hot‑Swap**: load new formats at runtime, no restart<br>• **Context‑Aware Pipelines**: infer intent (archive, transcode, optimize) from content & flags |
+
+---
+
+## ✨ Key Features
+
+* **Plug‑in adapters**: each format lives in its own crate or Wasm module; community can publish on crates.io without rebuilding core.
+* **Everywhere**: same engine powers desktop apps, serverless lambdas, or embedded devices (no‑std optional).
+* **Observability built‑in**: trace spans, Prom metrics, and flamegraph dump on `SIGUSR1`.
+* **License‑friendly**: dual‑licensed MIT/Apache‑2.0, plus adapter‑level permissive exceptions.
+
+---
+
+## 🏗️ Architecture at a Glance
+
+```
+┌────────────── CLI / gRPC / FFI binding ──────────────┐
+│                                                     │
+│        front‑end shells (thin)                      │
+└────────────── ▼──────────────────────────── ▼────────┘
+        ╭──────────────────────────────╮
+        │  Konvrt Engine Core          │  ← async tasks, ring‑buffers
+        │  • Scheduler                 │
+        │  • Sandbox & policy          │
+        │  • Adapter host (Wasm/trait) │
+        ╰──────────────────────────────╯
+```
+
+Crates layout: `konvrt-core`, `konvrt-cli`, `konvrt-adapter-sdk`, `konvrt-wasm-host`, `konvrt-cloud`.
+
+---
+
+## 📦 Supported Formats (v0.1)
+
+| Category | Formats               |
+| -------- | --------------------- |
+| Images   | PNG, JPEG, WebP, AVIF |
+| Archives | TAR, ZIP, 7z, GZIP    |
+| Audio    | MP3, FLAC             |
+| Video    | MP4 (H.264), WebM     |
+
+> *Full list is generated at runtime from the adapter registry.*
+
+---
+
+## 🔜 Roadmap
+
+| Version | Highlights                                      |
+| ------- | ----------------------------------------------- |
+| **0.1** | Core pipeline, 10 adapters, baseline benchmarks |
+| **0.3** | Wasm adapter SDK + hot‑swap, GPU paths          |
+| **0.6** | One‑Shot Publish, ML oracle beta                |
+| **1.0** | Stable APIs, cloud autoscale, GUI desktop app   |
+
+---
+
+## 📊 Benchmarks
+
+Automated GitHub Actions run native perf tests on each commit; flamegraphs are published to `gh‑pages` for deep dives.
+
+---
+
+## 🤝 Contributing
+
+1. Fork & `cargo test --all`.
+2. Create a new adapter with `cargo generate konvrt‑adapter‑template`.
+3. Follow the CI style/lint rules (`rustfmt`, `clippy`, `just check`).
+
+We follow the [Contributor Covenant](CODE_OF_CONDUCT.md).
+
+---
+
+## 🛡️ License
+
+Konvrt is dual‑licensed under **MIT** and **Apache‑2.0**. You may choose either license.
+
+---
+
+## 💬 Community & Support
+
+* **Discussions**: GitHub *Discussions* tab
+* **Chat**: `#konvrt` on Matrix / Discord bridge
+* **Security issues**: [security@konvrt.dev](mailto:security@konvrt.dev)
+
+---
+
+> © 2025 Konvrt contributors. Built with ❤️ in Rust.
